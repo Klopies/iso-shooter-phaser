@@ -24,7 +24,8 @@ export default defineConfig({
             output: {
                 manualChunks: {
                     phaser: ['phaser']
-                }
+                },
+                dir: 'docs'
             }
         },
         minify: 'terser',
