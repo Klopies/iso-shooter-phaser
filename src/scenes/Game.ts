@@ -52,7 +52,7 @@ export class Game extends Scene {
     this.physics.world.setBounds(0, 0, this.camera.width, this.camera.height);
     this.physics.world.setBoundsCollision(true, true, true, true);
 
-    for (const _ of Array(50).keys()) {
+    for (const _ of Array(30).keys()) {
       const circle = new Circle(
         this,
         Math.random() * this.camera.width,
