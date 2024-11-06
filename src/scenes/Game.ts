@@ -1,35 +1,79 @@
-import { Scene } from 'phaser';
+import { GameObjects, Physics, Scene } from "phaser";
 
-export class Game extends Scene
-{
-    camera: Phaser.Cameras.Scene2D.Camera;
-    background: Phaser.GameObjects.Image;
-    msg_text : Phaser.GameObjects.Text;
+class Circle extends GameObjects.Arc {
+  arcadeBody: Physics.Arcade.Body;
 
-    constructor ()
-    {
-        super('Game');
+  constructor(game: Game, x: number, y: number, radius: number, color: number) {
+    super(game, x, y, radius, 0, 360, false, color);
+
+    const speed = Math.random() * 100 + 100;
+
+    game.add.existing(this);
+
+    this.arcadeBody = game.physics.add.existing(this)
+      .body as Physics.Arcade.Body;
+
+    this.arcadeBody.setCollideWorldBounds(true);
+    this.arcadeBody.setBounce(1);
+    this.arcadeBody.setCircle(radius);
+
+    game.physics.moveTo(
+      this,
+      Phaser.Math.Between(0, game.camera.width),
+      Phaser.Math.Between(0, game.camera.height),
+      speed
+    );
+  }
+}
+
+export class Game extends Scene {
+  camera: Phaser.Cameras.Scene2D.Camera;
+  background: Phaser.GameObjects.Image;
+  msg_text: Phaser.GameObjects.Text;
+  circles: Circle[];
+
+  constructor() {
+    super({
+      key: "Game",
+      physics: {
+        default: "arcade",
+        arcade: {
+          // debug: true,
+        },
+      },
+    });
+    this.circles = [];
+  }
+
+  create() {
+    this.camera = this.cameras.main;
+    this.camera.setBackgroundColor(0xffffff);
+
+    this.physics.world.setBounds(0, 0, this.camera.width, this.camera.height);
+    this.physics.world.setBoundsCollision(true, true, true, true);
+
+    for (const _ of Array(50).keys()) {
+      const circle = new Circle(
+        this,
+        Math.random() * this.camera.width,
+        Math.random() * this.camera.height,
+        20 + Math.random() * 20,
+        0x00000
+      );
+      this.circles.push(circle);
     }
 
-    create ()
-    {
-        this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0x00ff00);
+    this.input.on('pointerdown', () => {
+      this.physics.pause();
+    });
 
-        this.background = this.add.image(512, 384, 'background');
-        this.background.setAlpha(0.5);
+    this.input.on('pointerup', () => {
+      this.physics.resume();
+    });
+  }
 
-        this.msg_text = this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        });
-        this.msg_text.setOrigin(0.5);
 
-        this.input.once('pointerdown', () => {
-
-            this.scene.start('GameOver');
-
-        });
-    }
+  update() {
+    this.physics.collide(this.circles);
+  }
 }
